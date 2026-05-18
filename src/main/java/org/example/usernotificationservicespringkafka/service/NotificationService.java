@@ -21,15 +21,15 @@ public class NotificationService {
 
     public void handleEvent(UserEvent userEvent) {
         String message;
-        if (userEvent.getType() == UserEventType.CREATED) {
-            message = "Notification has been created";
-        } else if (userEvent.getType() == UserEventType.DELETED) {
-            message = "Notification has been deleted";
+        if (userEvent.getEventType() == UserEventType.CREATED) {
+            message = "Профиль успешно создан";
+        } else if (userEvent.getEventType() == UserEventType.DELETED) {
+            message = "Профиль удалён";
         } else {
             message = "Unsupported event type";
         }
         sendEmail(userEvent.getEmail(), "уведомление", message);
-        saveNotification(userEvent.getEmail(), message, userEvent.getType().name());
+        saveNotification(userEvent.getEmail(), message, userEvent.getEventType().name());
     }
 
     public void sendManualNotification(String email, String message) {
