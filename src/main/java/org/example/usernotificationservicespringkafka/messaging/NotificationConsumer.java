@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class NotificationConsumer {
     private final NotificationService notificationService;
 
-    @KafkaListener
+    @KafkaListener(topics = "user-events", groupId = "notification-group")
     public void consume(UserEvent event) {
         notificationService.handleEvent(event);
     }
