@@ -1,5 +1,6 @@
 package org.example.usernotificationservicespringkafka.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.usernotificationservicespringkafka.dto.NotificationRequest;
 import org.example.usernotificationservicespringkafka.service.NotificationService;
@@ -13,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
 public class NotificationController {
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
     @PostMapping("/send")
-    public ResponseEntity<String> sendNotification(@RequestBody NotificationRequest request) {
+    public ResponseEntity<String> sendNotification(@Valid @RequestBody NotificationRequest request) {
         notificationService.sendManualNotification(request.getEmail(), request.getMessage());
         return ResponseEntity.ok("Notification sent successfully");
     }
