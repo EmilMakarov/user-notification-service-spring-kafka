@@ -1,5 +1,6 @@
 package org.example.usernotificationservicespringkafka.service;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.usernotificationservicespringkafka.event.UserEvent;
@@ -21,29 +22,33 @@ public class NotificationService {
 
     public void handleEvent(UserEvent userEvent) {
         String message;
-        if (userEvent.getEventType() == UserEventType.CREATED) {
-            message = "Профиль успешно создан";
-        } else if (userEvent.getEventType() == UserEventType.DELETED) {
-            message = "Профиль удалён";
+        if (UserEventType.CREATED == userEvent.getEventType()) {
+            message = "Profile created successfully";
+        } else if (UserEventType.DELETED == userEvent.getEventType()) {
+            message = "Profile is deleted";
         } else {
             message = "Unsupported event type";
         }
-        sendEmail(userEvent.getEmail(), "уведомление", message);
-        saveNotification(userEvent.getEmail(), message, userEvent.getEventType().name());
+        sendEmail(userEvent.getEmail(), "notification", message, userEvent.getEventType().name());
     }
 
     public void sendManualNotification(String email, String message) {
-        sendEmail(email, "уведомление", message);
-        saveNotification(email, message, "manual");
+        sendEmail(email, "notification", message, "manual");
     }
 
-    private void sendEmail(String to, String subject, String message) {
+    @CircuitBreaker(name = "emailService", fallbackMethod = "emailFallbackLogger")
+    private void sendEmail(String to, String subject, String text, String type) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(to);
         mailMessage.setSubject(subject);
-        mailMessage.setText(message);
+        mailMessage.setText(text);
         sendMail.send(mailMessage);
+        saveNotification(to, text, type);
     }
+    private void emailFallbackLogger(String to, String subject, String text, String type, Throwable t) {
+        log.warn("Email sending failed for {}: {}", to, t.getMessage());
+    }
+
 
     private void saveNotification(String email, String message, String type) {
         Notification notification = Notification.builder()
